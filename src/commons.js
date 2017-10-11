@@ -2,6 +2,10 @@
 define(() => {
   'use strict';
 
+  function adbCommandWithLength(command) {
+    return command.length.toString(16).padStart(4, '0') + command;
+  }
+
   function convertArrayBufferToString(buf, callback) {
     var fr = new FileReader();
     fr.onload = function(e) {
@@ -11,12 +15,6 @@ define(() => {
     fr.readAsText(blob);
   };
 
-  /**
-   * Converts a string to an ArrayBuffer
-   *
-   * @param {String} str The string to convert
-   * @param {Function} callback The function to call when conversion is complete
-   */
   function convertStringToArrayBuffer(str, callback) {
     var bb = new Blob([str]);
     var fr = new FileReader();
@@ -27,7 +25,8 @@ define(() => {
   };
 
   return {
-    convertArrayBufferToString: convertArrayBufferToString,
-    convertStringToArrayBuffer: convertStringToArrayBuffer
+    adbCmdWithLength: adbCommandWithLength,
+    AB2String: convertArrayBufferToString,
+    string2AB: convertStringToArrayBuffer
   };
 });

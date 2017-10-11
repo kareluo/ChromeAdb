@@ -1,0 +1,27 @@
+{
+  "name": "ChromeAdb",
+  "version": "1.0.0",
+  "description": "Chrome Adb(Android Debug Bridge) Javascript Library.",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kareluo/ChromeAdb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kareluo/ChromeAdb/issues"
+  },
+  "homepage": "https://github.com/kareluo/ChromeAdb#readme",
+  "devDependencies": {
+    "webpack": "^3.6.0"
+  },
+
+  "scripts": {
+    "build": "webpack"
+  }
+}

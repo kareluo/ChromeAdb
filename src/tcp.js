@@ -1,5 +1,5 @@
 
-define(["./converter"], (converter) => {
+define(["./commons"], (commons) => {
 
   'use strict';
 
@@ -36,7 +36,7 @@ define(["./converter"], (converter) => {
         this.offset += array.length;
       }
       if(this.onReceive) {
-        converter.convertArrayBufferToString(info.data, message => {
+        commons.AB2String(info.data, message => {
           if(this.onReceive) {
             this.onReceive(message);
           }
@@ -65,7 +65,7 @@ define(["./converter"], (converter) => {
     this.onReceiveError = null;
     if(this.onCallback) {
       let buf = this.buffer.buffer.slice(0, this.offset);
-      converter.convertArrayBufferToString(buf, message => {
+      commons.AB2String(buf, message => {
         if(this.onCallback) {
           this.onCallback(message);
         }
@@ -113,7 +113,7 @@ define(["./converter"], (converter) => {
 
   tcp.prototype.sendMessage = function(message, callback) {
     console.log(message);
-    converter.convertStringToArrayBuffer(message, buffer => {
+    commons.string2AB(message, buffer => {
       this.TCP.send(this.socketId, buffer, info => {
         if(callback) callback(info);
       });

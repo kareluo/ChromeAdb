@@ -1,5 +1,5 @@
 
-define("adb", ["./util/utils", "tcp"], (utils, tcp) => {
+define("adb", ["./commons", "./tcp"], (commons, tcp) => {
   'use strict';
 
   function adb() {
@@ -25,11 +25,11 @@ define("adb", ["./util/utils", "tcp"], (utils, tcp) => {
   };
 
   adb.getWithShell = function (command) {
-    return utils.getWithLength("shell:" + command);
+    return commons.adbCmdWithLength("shell:" + command);
   };
 
   adb.getWithHost = function (command) {
-    return utils.getWithLength("host:" + command);
+    return commons.adbCmdWithLength("host:" + command);
   };
 
   adb.getWithTransport = function(serial) {
