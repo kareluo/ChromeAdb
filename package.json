@@ -11,7 +11,7 @@
     "url": "git+https://github.com/kareluo/ChromeAdb.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "kareluo",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/kareluo/ChromeAdb/issues"
@@ -20,7 +20,6 @@
   "devDependencies": {
     "webpack": "^3.6.0"
   },
-
   "scripts": {
     "build": "webpack"
   }
