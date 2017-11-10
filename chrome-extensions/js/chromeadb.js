@@ -71,7 +71,9 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_lodash__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_client__ = __webpack_require__(4);
+
+
 
 
 
@@ -80,6 +82,7 @@ function component() {
 
   // Lodash, currently included via a script, is required for this line to work
   element.innerHTML = __WEBPACK_IMPORTED_MODULE_0_lodash___default.a.join(['Hello', 'webpack'], ',,,');
+  var adb = new __WEBPACK_IMPORTED_MODULE_1__adb_client__["a" /* default */]();
 
   return element;
 }
@@ -17240,45 +17243,43 @@ module.exports = function(module) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__tcp_client__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_utils__ = __webpack_require__(8);
 
 
 
 
-function adb() {
-  this.exec("devices-l")
+
+function ADBClient() {
+  this.exec("devices-l");
 };
 
-adb.prototype.exec = function (command) {
-  let client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */]("127.0.0.1", 5037);
-
-  client.onDisconnect(message => {
-    console.log(message);
+ADBClient.prototype.exec = function (command) {
+  let client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */]({
+    host: "127.0.0.1",
+    port: 5037,
+    onOpen: function() {
+      console.log("onOpen");
+    },
+    onMessage: function(message) {
+      console.log("onMessage");
+    },
+    onResponse: function(response) {
+      console.log(response);
+    },
+    onError: function(error) {
+      console.log(error);
+    },
+    onClose: function() {
+      console.log("onClose");
+    }
   });
 
-  client.connect()
-  .then(() => {
-    client.sendMessage(adb.getWithHost(command), info => {
-      console.log(info);
-    });
-  })
-  .catch(error => {
-    console.error(error);
+  client.connect(() => {
+    client.sendText(__WEBPACK_IMPORTED_MODULE_1__adb_utils__["a" /* default */].withHost(command));
   });
 };
 
-adb.getWithShell = function (command) {
-  return commons.adbCmdWithLength("shell:" + command);
-};
-
-adb.getWithHost = function (command) {
-  return commons.adbCmdWithLength("host:" + command);
-};
-
-adb.getWithTransport = function(serial) {
-  return adb.getWithHost("transport:" + serial);
-};
-
-/* unused harmony default export */ var _unused_webpack_default_export = (adb);
+/* harmony default export */ __webpack_exports__["a"] = (ADBClient);
 
 
 /***/ }),
@@ -17299,7 +17300,7 @@ function TCPClient(config) {
   this.config.port = this.config.port || 80;
 
   this.socketId = null;
-  this.buffers = new __WEBPACK_IMPORTED_MODULE_1__string_builder__["a" /* default */](1024);
+  this.messages = new __WEBPACK_IMPORTED_MODULE_1__string_builder__["a" /* default */](1024);
 };
 
 TCPClient.prototype._create = function (callback) {
@@ -17319,19 +17320,28 @@ TCPClient.prototype._connect = function (callback) {
     } else if (result < 0) {
       this._onError("Unable to connect server: " + result);
     } else {
-      chrome.sockets.tcp.onReceive.addListener(this._onReceive.bind(this));
-      chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError.bind(this));
+      this._onOpen();
+      if(callback) callback();
     }
   });
+};
+
+TCPClient.prototype._onOpen = function() {
+  chrome.sockets.tcp.onReceive.addListener(this._onReceive.bind(this));
+  chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError.bind(this));
+  if(this.config.onOpen) {
+    this.config.onOpen();
+  }
 };
 
 TCPClient.prototype._onReceive = function(info) {
   if (info.socketId === this.socketId && info.data) {
     if(this.config.onReceive) {
       this.config.onReceive(info.data);
-    } else {
+    }
+    if(this.config.onResponse) {
       __WEBPACK_IMPORTED_MODULE_0__commons__["a" /* default */].abts(info.data, message => {
-        this.buffers.append(message);
+        this.messages.append(message);
       });
     }
   }
@@ -17342,9 +17352,7 @@ TCPClient.prototype._onReceiveError = function(info) {
     if(info.resultCode === -100) {
       this._onClose();
     } else {
-      if(this.config.onError) {
-        this.config.onError("Unable to receive data from socket: " + info.resultCode);
-      }
+      this._onError("Unable to receive data from socket: " + info.resultCode);
     }
   }
 };
@@ -17360,7 +17368,9 @@ TCPClient.prototype._onClose = function() {
   chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
   this.socketId = null;
   if(this.config.onResponse) {
-    this.config.onResponse(this.buffers.toString());
+    console.log(this.messages.xxx());
+    console.log(this.messages.toString());
+    this.config.onResponse(this.messages.toString());
   }
   if(this.config.onClose) {
     this.config.onClose();
@@ -17442,7 +17452,7 @@ function StringBuilder(maxLength = 1024) {
 
 StringBuilder.prototype.append = function(text) {
    if(text) {
-      if(buffers.length < maxLength) {
+      if(this.buffers.length < this.maxLength) {
         this.buffers.push(text);
       }
    }
@@ -17460,7 +17470,41 @@ StringBuilder.prototype.toString = function() {
    return this.buffers.join("");
 };
 
+StringBuilder.prototype.xxx = function() {
+   return this.buffers.join("");
+};
+
 /* harmony default export */ __webpack_exports__["a"] = (StringBuilder);
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+
+
+function ADBUtils() {
+
+};
+
+ADBUtils.withShell = function (cmd) {
+  return ADBUtils.withLength("shell:" + cmd);
+};
+
+ADBUtils.withHost = function (cmd) {
+  return ADBUtils.withLength("host:" + cmd);
+};
+
+ADBUtils.withTransport = function(serial) {
+  return ADBUtils.withHost("transport:" + serial);
+};
+
+ADBUtils.withLength = function(cmd) {
+  return cmd.length.toString(16).padStart(4, '0') + cmd;
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (ADBUtils);
 
 
 /***/ })

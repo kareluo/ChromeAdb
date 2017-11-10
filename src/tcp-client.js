@@ -9,7 +9,7 @@ function TCPClient(config) {
   this.config.port = this.config.port || 80;
 
   this.socketId = null;
-  this.buffers = new StringBuilder(1024);
+  this.messages = new StringBuilder(1024);
 };
 
 TCPClient.prototype._create = function (callback) {
@@ -29,19 +29,28 @@ TCPClient.prototype._connect = function (callback) {
     } else if (result < 0) {
       this._onError("Unable to connect server: " + result);
     } else {
-      chrome.sockets.tcp.onReceive.addListener(this._onReceive.bind(this));
-      chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError.bind(this));
+      this._onOpen();
+      if(callback) callback();
     }
   });
+};
+
+TCPClient.prototype._onOpen = function() {
+  chrome.sockets.tcp.onReceive.addListener(this._onReceive.bind(this));
+  chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError.bind(this));
+  if(this.config.onOpen) {
+    this.config.onOpen();
+  }
 };
 
 TCPClient.prototype._onReceive = function(info) {
   if (info.socketId === this.socketId && info.data) {
     if(this.config.onReceive) {
       this.config.onReceive(info.data);
-    } else {
+    }
+    if(this.config.onResponse) {
       Commons.abts(info.data, message => {
-        this.buffers.append(message);
+        this.messages.append(message);
       });
     }
   }
@@ -52,9 +61,7 @@ TCPClient.prototype._onReceiveError = function(info) {
     if(info.resultCode === -100) {
       this._onClose();
     } else {
-      if(this.config.onError) {
-        this.config.onError("Unable to receive data from socket: " + info.resultCode);
-      }
+      this._onError("Unable to receive data from socket: " + info.resultCode);
     }
   }
 };
@@ -70,7 +77,9 @@ TCPClient.prototype._onClose = function() {
   chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
   this.socketId = null;
   if(this.config.onResponse) {
-    this.config.onResponse(this.buffers.toString());
+    console.log(this.messages.xxx());
+    console.log(this.messages.toString());
+    this.config.onResponse(this.messages.toString());
   }
   if(this.config.onClose) {
     this.config.onClose();

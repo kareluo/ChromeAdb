@@ -71,7 +71,9 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_lodash__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_client__ = __webpack_require__(4);
+
+
 
 
 
@@ -80,6 +82,7 @@ function component() {
 
   // Lodash, currently included via a script, is required for this line to work
   element.innerHTML = __WEBPACK_IMPORTED_MODULE_0_lodash___default.a.join(['Hello', 'webpack'], ',,,');
+  var adb = new __WEBPACK_IMPORTED_MODULE_1__adb_client__["a" /* default */]();
 
   return element;
 }
@@ -17244,41 +17247,47 @@ module.exports = function(module) {
 
 
 
-function adb() {
-  this.exec("devices-l")
+function ADBClient() {
+  this.exec("devices-l");
 };
 
-adb.prototype.exec = function (command) {
-  let client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */]("127.0.0.1", 5037);
-
-  client.onDisconnect(message => {
-    console.log(message);
+ADBClient.prototype.exec = function (command) {
+  let client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */]({
+    host: "127.0.0.1",
+    port: 5037,
+    onOpen: function() {
+      console.log("onOpen");
+    },
+    onMessage: function() {
+      console.log("onMessage");
+    },
+    onResponse: function(response) {
+      console.log(response);
+    },
+    onClose: function() {
+      console.log("onClose");
+    }
   });
 
-  client.connect()
-  .then(() => {
-    client.sendMessage(adb.getWithHost(command), info => {
-      console.log(info);
-    });
-  })
-  .catch(error => {
-    console.error(error);
+  client.connect(() => {
+    console.log("connection");
+
   });
 };
 
-adb.getWithShell = function (command) {
+ADBClient.getWithShell = function (command) {
   return commons.adbCmdWithLength("shell:" + command);
 };
 
-adb.getWithHost = function (command) {
+ADBClient.getWithHost = function (command) {
   return commons.adbCmdWithLength("host:" + command);
 };
 
-adb.getWithTransport = function(serial) {
+ADBClient.getWithTransport = function(serial) {
   return adb.getWithHost("transport:" + serial);
 };
 
-/* unused harmony default export */ var _unused_webpack_default_export = (adb);
+/* harmony default export */ __webpack_exports__["a"] = (ADBClient);
 
 
 /***/ }),
@@ -17329,11 +17338,10 @@ TCPClient.prototype._onReceive = function(info) {
   if (info.socketId === this.socketId && info.data) {
     if(this.config.onReceive) {
       this.config.onReceive(info.data);
-    } else {
-      __WEBPACK_IMPORTED_MODULE_0__commons__["a" /* default */].abts(info.data, message => {
-        this.buffers.append(message);
-      });
     }
+    __WEBPACK_IMPORTED_MODULE_0__commons__["a" /* default */].abts(info.data, message => {
+      this.buffers.append(message);
+    });
   }
 };
 

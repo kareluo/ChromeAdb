@@ -7,7 +7,7 @@ function StringBuilder(maxLength = 1024) {
 
 StringBuilder.prototype.append = function(text) {
    if(text) {
-      if(buffers.length < maxLength) {
+      if(this.buffers.length < this.maxLength) {
         this.buffers.push(text);
       }
    }
@@ -22,6 +22,10 @@ StringBuilder.prototype.isEmpty = function() {
 };
 
 StringBuilder.prototype.toString = function() {
+   return this.buffers.join("");
+};
+
+StringBuilder.prototype.xxx = function() {
    return this.buffers.join("");
 };
 
