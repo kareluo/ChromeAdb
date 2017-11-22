@@ -22,9 +22,6 @@ ADBClient.prototype.exec = function (command) {
     },
     onError: function(error) {
       console.log(error);
-    },
-    onClose: function() {
-      console.log("onClose");
     }
   });
 

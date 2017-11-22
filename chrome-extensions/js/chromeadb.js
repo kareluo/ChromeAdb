@@ -17288,7 +17288,7 @@ ADBClient.prototype.exec = function (command) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__commons__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__string_builder__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__byte_builder__ = __webpack_require__(7);
 
 
 
@@ -17300,7 +17300,7 @@ function TCPClient(config) {
   this.config.port = this.config.port || 80;
 
   this.socketId = null;
-  this.messages = new __WEBPACK_IMPORTED_MODULE_1__string_builder__["a" /* default */](1024);
+  this.bufs = new __WEBPACK_IMPORTED_MODULE_1__byte_builder__["a" /* default */](1024);
 };
 
 TCPClient.prototype._create = function (callback) {
@@ -17340,9 +17340,7 @@ TCPClient.prototype._onReceive = function(info) {
       this.config.onReceive(info.data);
     }
     if(this.config.onResponse) {
-      __WEBPACK_IMPORTED_MODULE_0__commons__["a" /* default */].abts(info.data, message => {
-        this.messages.append(message);
-      });
+      this.bufs.append(info.data);
     }
   }
 };
@@ -17368,9 +17366,9 @@ TCPClient.prototype._onClose = function() {
   chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
   this.socketId = null;
   if(this.config.onResponse) {
-    console.log(this.messages.xxx());
-    console.log(this.messages.toString());
-    this.config.onResponse(this.messages.toString());
+    __WEBPACK_IMPORTED_MODULE_0__commons__["a" /* default */].abts(this.bufs.toArrayBuffer(), message => {
+      this.config.onResponse(message);
+    });
   }
   if(this.config.onClose) {
     this.config.onClose();
@@ -17445,36 +17443,34 @@ Commons.abts = _ArrayBufferToString;
 "use strict";
 
 
-function StringBuilder(maxLength = 1024) {
+function ByteBuilder(maxLength = 1024) {
    this.maxLength = maxLength;
-   this.buffers = [];
+   this.offset = 0;
+   this.buffers = new Uint8Array(new ArrayBuffer(maxLength));
 };
 
-StringBuilder.prototype.append = function(text) {
-   if(text) {
-      if(this.buffers.length < this.maxLength) {
-        this.buffers.push(text);
-      }
+ByteBuilder.prototype.append = function(buffer) {
+   if(buffer) {
+     if(this.offset + buffer.byteLength <= this.maxLength) {
+       this.buffers.set(new Uint8Array(buffer), this.offset);
+       this.offset += buffer.byteLength;
+     }
    }
 };
 
-StringBuilder.prototype.clear = function() {
-   this.buffers = [];
+ByteBuilder.prototype.clear = function() {
+   this.offset = 0;
 };
 
-StringBuilder.prototype.isEmpty = function() {
-   return this.buffers.length == 0;
+ByteBuilder.prototype.isEmpty = function() {
+   return this.offset == 0;
 };
 
-StringBuilder.prototype.toString = function() {
-   return this.buffers.join("");
+ByteBuilder.prototype.toArrayBuffer = function() {
+   return this.buffers.slice(0, this.offset);
 };
 
-StringBuilder.prototype.xxx = function() {
-   return this.buffers.join("");
-};
-
-/* harmony default export */ __webpack_exports__["a"] = (StringBuilder);
+/* harmony default export */ __webpack_exports__["a"] = (ByteBuilder);
 
 
 /***/ }),

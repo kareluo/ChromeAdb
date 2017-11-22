@@ -25,8 +25,4 @@ StringBuilder.prototype.toString = function() {
    return this.buffers.join("");
 };
 
-StringBuilder.prototype.xxx = function() {
-   return this.buffers.join("");
-};
-
 export default StringBuilder;

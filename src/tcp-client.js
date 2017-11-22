@@ -1,7 +1,7 @@
 'use strict';
 
 import Commons from './commons';
-import StringBuilder from './string-builder';
+import ByteBuilder from './byte-builder';
 
 function TCPClient(config) {
   this.config = config || {};
@@ -9,7 +9,7 @@ function TCPClient(config) {
   this.config.port = this.config.port || 80;
 
   this.socketId = null;
-  this.messages = new StringBuilder(1024);
+  this.bufs = new ByteBuilder(1024);
 };
 
 TCPClient.prototype._create = function (callback) {
@@ -49,9 +49,7 @@ TCPClient.prototype._onReceive = function(info) {
       this.config.onReceive(info.data);
     }
     if(this.config.onResponse) {
-      Commons.abts(info.data, message => {
-        this.messages.append(message);
-      });
+      this.bufs.append(info.data);
     }
   }
 };
@@ -77,9 +75,9 @@ TCPClient.prototype._onClose = function() {
   chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
   this.socketId = null;
   if(this.config.onResponse) {
-    console.log(this.messages.xxx());
-    console.log(this.messages.toString());
-    this.config.onResponse(this.messages.toString());
+    Commons.abts(this.bufs.toArrayBuffer(), message => {
+      this.config.onResponse(message);
+    });
   }
   if(this.config.onClose) {
     this.config.onClose();
