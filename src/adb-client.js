@@ -4,29 +4,13 @@ import TCPClient from './tcp-client';
 import ADBUtils from './adb-utils';
 
 function ADBClient() {
-  this.exec("devices-l");
+
 };
 
-ADBClient.prototype.exec = function (command) {
-  let client = new TCPClient({
-    host: "127.0.0.1",
-    port: 5037,
-    onOpen: function() {
-      console.log("onOpen");
-    },
-    onMessage: function(message) {
-      console.log("onMessage");
-    },
-    onResponse: function(response) {
-      console.log(response);
-    },
-    onError: function(error) {
-      console.log(error);
-    }
-  });
-
-  client.connect(() => {
-    client.sendText(ADBUtils.withHost(command));
+ADBClient.prototype.exec = function (config, command) {
+  let _tcp_client = new TCPClient(config);
+  _tcp_client.connect(() => {
+    _tcp_client.sendText(ADBUtils.withHost(command));
   });
 };
 

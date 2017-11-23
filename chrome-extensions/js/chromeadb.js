@@ -71,7 +71,7 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_lodash__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_client__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__chrome_adb__ = __webpack_require__(4);
 
 
 
@@ -82,7 +82,10 @@ function component() {
 
   // Lodash, currently included via a script, is required for this line to work
   element.innerHTML = __WEBPACK_IMPORTED_MODULE_0_lodash___default.a.join(['Hello', 'webpack'], ',,,');
-  var adb = new __WEBPACK_IMPORTED_MODULE_1__adb_client__["a" /* default */]();
+  var adb = new __WEBPACK_IMPORTED_MODULE_1__chrome_adb__["a" /* default */]();
+  adb.devices(devices => {
+    console.log(devices);
+  })
 
   return element;
 }
@@ -17242,44 +17245,29 @@ module.exports = function(module) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__tcp_client__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_utils__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__adb_client__ = __webpack_require__(5);
 
 
 
 
-
-function ADBClient() {
-  this.exec("devices-l");
+function ChromeAdb() {
+  this.adb_client = new __WEBPACK_IMPORTED_MODULE_0__adb_client__["a" /* default */]();
 };
 
-ADBClient.prototype.exec = function (command) {
-  let client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */]({
+ChromeAdb.prototype.devices = function(callback) {
+  this.adb_client.exec({
     host: "127.0.0.1",
     port: 5037,
-    onOpen: function() {
-      console.log("onOpen");
-    },
-    onMessage: function(message) {
-      console.log("onMessage");
-    },
-    onResponse: function(response) {
-      console.log(response);
+    onResponse: function(message) {
+      console.log(message);
     },
     onError: function(error) {
       console.log(error);
-    },
-    onClose: function() {
-      console.log("onClose");
     }
-  });
-
-  client.connect(() => {
-    client.sendText(__WEBPACK_IMPORTED_MODULE_1__adb_utils__["a" /* default */].withHost(command));
-  });
+  }, "devices-l");
 };
 
-/* harmony default export */ __webpack_exports__["a"] = (ADBClient);
+/* harmony default export */ __webpack_exports__["a"] = (ChromeAdb);
 
 
 /***/ }),
@@ -17287,8 +17275,34 @@ ADBClient.prototype.exec = function (command) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__commons__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__byte_builder__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__tcp_client__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adb_utils__ = __webpack_require__(9);
+
+
+
+
+
+function ADBClient() {
+
+};
+
+ADBClient.prototype.exec = function (config, command) {
+  let _tcp_client = new __WEBPACK_IMPORTED_MODULE_0__tcp_client__["a" /* default */](config);
+  _tcp_client.connect(() => {
+    _tcp_client.sendText(__WEBPACK_IMPORTED_MODULE_1__adb_utils__["a" /* default */].withHost(command));
+  });
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (ADBClient);
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__commons__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__byte_builder__ = __webpack_require__(8);
 
 
 
@@ -17398,7 +17412,7 @@ TCPClient.prototype.sendText = function(message, callback) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -17437,7 +17451,7 @@ Commons.abts = _ArrayBufferToString;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -17474,7 +17488,7 @@ ByteBuilder.prototype.toArrayBuffer = function() {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
